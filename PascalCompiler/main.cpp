@@ -3,8 +3,15 @@
 #include "Compiler.h"
 
 int main(){
-	Compiler::TranslitToString("Resource\\input.txt", "Resource\\SafeTransliterOutput.txt");
-	Compiler::TranslitToNumber("Resource\\input.txt", "Resource\\TransliterOutput.txt");
+	try{
+		Compiler::TranslitToString("Resource\\input.txt", "Resource\\SafeTransliterOutput.txt");
+		Compiler::TranslitToNumber("Resource\\input.txt", "Resource\\TransliterOutput.txt");
+
+		Compiler::LexicalUnit::GenerateTokens("Resource\\TransliterOutput.txt", "Resource\\SafeLexicalOutput.txt");
+	}
+	catch (std::exception& exp){
+		std::cerr << exp.what() << std::endl;
+	}
 
 	return 0;
 }
