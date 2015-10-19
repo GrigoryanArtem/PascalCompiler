@@ -94,6 +94,7 @@ void LexicalUnit::GenerateTokens(const char* input_file, const char* output_file
 				currentWord += ";";
 				output << TokenToString(endString, currentWord);
 				currentWord.clear();
+				break;
 			case colon:
 				output << TokenToString(identifier, currentWord);
 				currentWord.clear();
@@ -113,6 +114,13 @@ void LexicalUnit::GenerateTokens(const char* input_file, const char* output_file
 			case colon:
 				currentWord += (char)numberOfChar;
 				state = A1;
+				break;
+			case semicolon:
+				state = S1;
+
+				currentWord += ";";
+				output << TokenToString(endString, currentWord);
+				currentWord.clear();
 				break;
 			default:
 				LexicalException(currentWord);
