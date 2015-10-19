@@ -49,7 +49,8 @@ namespace Compiler{
 			// assignment - assignment operation ":="
 
 			identifier,
-			assignment
+			assignment,
+			endString
 		};
 
 		enum StateOfMachine{
@@ -62,6 +63,7 @@ namespace Compiler{
 			I2,
 			I3,
 			A1,
+			A2
 		};
 
 		std::string LixicalClassToString(LexicalClass lexicalClass);

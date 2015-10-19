@@ -47,9 +47,104 @@ void LexicalUnit::GenerateTokens(const char* input_file, const char* output_file
 				state = I2;
 				currentWord += (char)numberOfChar;
 				break;
+			case semicolon:
+				state = S1;
+
+				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
+
+				currentWord += ";";
+				output << TokenToString(endString, currentWord);
+				currentWord.clear();
+				break;
+			case space:
+				state = I3;
+
+				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
+				break;
+			case colon:
+				state = A1;
+
+				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
+
+				currentWord += (char)numberOfChar;
+				break;
+			default:
+				LexicalException(currentWord);
+			}
+
+			break;
+		case I2:
+
+			switch (numberOfClass)
+			{
 			case space:
 				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
 				state = I3;
+				break;
+			case semicolon:
+				state = S1;
+
+				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
+
+				currentWord += ";";
+				output << TokenToString(endString, currentWord);
+				currentWord.clear();
+			case colon:
+				output << TokenToString(identifier, currentWord);
+				currentWord.clear();
+				currentWord += (char)numberOfChar;
+				state = A1;
+				break;
+			default:
+				LexicalException(currentWord);
+			}
+
+			break;
+
+		case I3:
+
+			switch (numberOfClass)
+			{
+			case colon:
+				currentWord += (char)numberOfChar;
+				state = A1;
+				break;
+			default:
+				LexicalException(currentWord);
+			}
+
+			break;
+
+		case A1:
+
+			switch (numberOfClass)
+			{
+			case compare:
+				state = A2;
+				currentWord += (char)numberOfChar;
+				output << TokenToString(assignment, currentWord);
+				currentWord.clear();
+				break;
+			default:
+				LexicalException(currentWord);
+			}
+
+			break;
+		case A2:
+
+			switch (numberOfClass)
+			{
+			case letter:
+				currentWord += (char)numberOfChar;
+				state = I1;
+				break;
+			case space:
+				state = A2;
 				break;
 			default:
 				LexicalException(currentWord);
@@ -84,13 +179,16 @@ std::string LexicalUnit::LixicalClassToString(LexicalClass lexicalClass){
 	case assignment:
 		output = "ASSIGNMENT";
 		break;
+	case endString:
+		output = "END STRING";
+		break;
 	}
 
 	return output;
 }
 
 void LexicalUnit::LexicalException(const std::string& word){
-	std::string exception = "Error : A token is not found :" + word;
+	std::string exception = "Error : A token is not found : \"" + word + '\"';
 
 	throw std::exception(exception.c_str());
 }

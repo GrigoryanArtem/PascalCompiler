@@ -42,8 +42,11 @@ SymbolClass Transliter::GetSymbolClass(char symbol){
 	if (symbol == ' ')
 		return space;
 
-	if (symbol == '-' || symbol == '+' || symbol == '*' || symbol == '/' || symbol == '=')
+	if (symbol == '-' || symbol == '+' || symbol == '*' || symbol == '/')
 		return arithmetic;
+
+	if (symbol == '>' || symbol == '<' ||  symbol == '=')
+		return compare;
 
 	if (symbol == ':')
 		return colon;
