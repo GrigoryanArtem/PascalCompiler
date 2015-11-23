@@ -8,159 +8,166 @@
 using namespace Compiler;
 using namespace Compiler::Transliter;
 using namespace Compiler::LexicalUnit;
+using namespace Compiler::LexicalUnit;
 
-void LexicalUnit::GenerateTokens(const char* input_file, const char* output_file){
-	std::string currentWord;
+CLexicalUnit::CLexicalUnit() {
+	_currentState = S1;
+	_currentString = 1;
+}
 
+void CLexicalUnit::UpdateCurrentState(StateOfMachine state) {
+	_currentState = state;
+}
+
+void CLexicalUnit::GenerateTokens(const char* input_file, const char* output_file){
 	std::ifstream input(input_file);
 	std::ofstream output(output_file);
 
 	int numberOfClass, numberOfChar;
-	StateOfMachine state = S1;
 
 	while (input >> numberOfClass >> numberOfChar){
-		switch (state){
+		switch (_currentState){
 		case S1:
-
-			switch (numberOfClass){
-			case letter:
-				state = I1;
-				currentWord += (char)numberOfChar;
-				break;
-			case space:
-				state = S1;
-				break;
-			case newline:
-				state = S1;
-				output << std::endl;
-				break;
-			default:
-				LexicalException(currentWord);
-			}
-	
-			break;
-		case I1:
-
 			switch (numberOfClass)
 			{
-			case number:
-				state = I2;
-				currentWord += (char)numberOfChar;
-				break;
-			case semicolon:
-				state = S1;
-
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
-
-				currentWord += ";";
-				output << TokenToString(endString, currentWord);
-				currentWord.clear();
+			case letter:
+				UpdateCurrentState(I1);
+				UpdateCurrentWord(numberOfChar);
 				break;
 			case space:
-				state = I3;
-
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
+				UpdateCurrentState(S1);
 				break;
-			case colon:
-				state = A1;
-
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
-
-				currentWord += (char)numberOfChar;
+			case newline:
+				std::endl(output);
+				_currentString++;
+				UpdateCurrentState(S1);
 				break;
 			default:
-				LexicalException(currentWord);
+				LexicalException();
+				
+			}
+
+			break;
+		case I0:
+			switch (numberOfClass)
+			{
+			case letter:
+				UpdateCurrentState(I1);
+				UpdateCurrentWord(numberOfChar);
+				break;
+			case space:
+				UpdateCurrentState(I0);
+				break;
+			default:
+				LexicalException();
+			}
+			break;
+		case I1:
+			switch (numberOfClass) {
+			case number:
+				UpdateCurrentState(I2);
+				UpdateCurrentWord(numberOfChar);
+				break;
+			case semicolon:
+				_currentClass = identifier;
+				WriteMessage(output);
+
+				UpdateCurrentWord(numberOfChar);
+				_currentClass = endString;
+				WriteMessage(output);
+
+				UpdateCurrentState(S1);
+				break;
+			case space:
+				UpdateCurrentState(I3);
+				break;
+			case colon:
+				UpdateCurrentState(P1);
+				UpdateCurrentWord(numberOfChar);
+				break;
+			default:
+				LexicalException();
 			}
 
 			break;
 		case I2:
-
-			switch (numberOfClass)
-			{
-			case space:
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
-				state = I3;
-				break;
+			switch (numberOfClass) {
 			case semicolon:
-				state = S1;
+				_currentClass = identifier;
+				WriteMessage(output);
 
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
+				UpdateCurrentWord(numberOfChar);
+				_currentClass = endString;
+				WriteMessage(output);
 
-				currentWord += ";";
-				output << TokenToString(endString, currentWord);
-				currentWord.clear();
+				UpdateCurrentState(S1);
+				break;
+			case space:
+				UpdateCurrentState(I3);
 				break;
 			case colon:
-				output << TokenToString(identifier, currentWord);
-				currentWord.clear();
-				currentWord += (char)numberOfChar;
-				state = A1;
+				UpdateCurrentState(P1);
+				UpdateCurrentWord(numberOfChar);
 				break;
 			default:
-				LexicalException(currentWord);
+				LexicalException();
 			}
 
 			break;
-
 		case I3:
-
-			switch (numberOfClass)
-			{
-			case colon:
-				currentWord += (char)numberOfChar;
-				state = A1;
-				break;
+			switch (numberOfClass) {
 			case semicolon:
-				state = S1;
+				_currentClass = identifier;
+				WriteMessage(output);
 
-				currentWord += ";";
-				output << TokenToString(endString, currentWord);
-				currentWord.clear();
-				break;
-			default:
-				LexicalException(currentWord);
-			}
+				UpdateCurrentWord(numberOfChar);
+				_currentClass = endString;
+				WriteMessage(output);
 
-			break;
-
-		case A1:
-
-			switch (numberOfClass)
-			{
-			case compare:
-				state = A2;
-				currentWord += (char)numberOfChar;
-				output << TokenToString(assignment, currentWord);
-				currentWord.clear();
-				break;
-			default:
-				LexicalException(currentWord);
-			}
-
-			break;
-		case A2:
-
-			switch (numberOfClass)
-			{
-			case letter:
-				currentWord += (char)numberOfChar;
-				state = I1;
+				UpdateCurrentState(S1);
 				break;
 			case space:
-				state = A2;
+				UpdateCurrentState(I3);
+				break;
+			case colon:
+				UpdateCurrentState(P1);
+				UpdateCurrentWord(numberOfChar);
 				break;
 			default:
-				LexicalException(currentWord);
+				LexicalException();
+			}
+
+			break;
+		case P1:
+			switch (numberOfClass) {
+			case letter:
+				_currentClass = label;
+				WriteMessage(output);
+
+				UpdateCurrentWord(numberOfChar);
+				UpdateCurrentState(I1);
+				break;
+			case compare:
+				if ((char)numberOfChar == '=') {
+					UpdateCurrentWord(numberOfChar);
+					_currentClass = assignment;
+					WriteMessage(output);
+					UpdateCurrentState(I0);
+				}
+				break;
+			case space:
+				_currentClass = label;
+				WriteMessage(output);
+
+				UpdateCurrentState(I0);
+				break;
+			default:
+				LexicalException();
 			}
 
 			break;
 		default:
-			LexicalException(currentWord);
+			LexicalException();
 		}
 	}
 
@@ -168,15 +175,20 @@ void LexicalUnit::GenerateTokens(const char* input_file, const char* output_file
 	output.close();
 }
 
-std::string LexicalUnit::TokenToString(LexicalClass lexicalClass, const std::string& word){
+void CLexicalUnit::WriteMessage(std::ostream& stream) {
+	stream << TokenToString();
+	_currentWord.clear();
+}
+
+std::string CLexicalUnit::TokenToString(){
 	std::stringstream output; 
 
-	output << "(" << LixicalClassToString(lexicalClass) << ";\"" << word << "\")";
+	output << "(" << LexicalClassToString(_currentClass) << ";\"" << _currentWord << "\")";
 
 	return output.str();
 }
 
-std::string LexicalUnit::LixicalClassToString(LexicalClass lexicalClass){
+std::string CLexicalUnit::LexicalClassToString(LexicalClass lexicalClass){
 	std::string output;
 	
 	switch (lexicalClass)
@@ -190,13 +202,22 @@ std::string LexicalUnit::LixicalClassToString(LexicalClass lexicalClass){
 	case endString:
 		output = "END STRING";
 		break;
+	case label:
+		output = "LABEL";
+		break;
 	}
 
 	return output;
 }
 
-void LexicalUnit::LexicalException(const std::string& word){
-	std::string exception = "Error : A token is not found : \"" + word + '\"';
+void CLexicalUnit::LexicalException(){
+	std::stringstream message;
+	message << "Error : A token is not found : \"" << _currentWord << "\" in string " <<_currentString;
+	std::string exception = message.str();
 
 	throw std::exception(exception.c_str());
+}
+
+void CLexicalUnit::UpdateCurrentWord(int numberOfChar) {
+	_currentWord += (char)numberOfChar;
 }

@@ -4,6 +4,7 @@
 #define COMPILER_H
 
 #include <string>
+#include <map>
 
 namespace Compiler{
 	namespace Transliter{
@@ -47,9 +48,11 @@ namespace Compiler{
 		enum LexicalClass{
 			// identifier - identifier big letter or big letter and number
 			// assignment - assignment operation ":="
+			// label - label in programm, big letter or big letter and number and colon
 
 			identifier,
 			assignment,
+			label,
 			endString
 		};
 
@@ -59,21 +62,37 @@ namespace Compiler{
 			// I2 - ID with the single letter and single number,  for example "D7" 
 
 			S1,
+			I0,
 			I1,
 			I2,
 			I3,
-			A1,
-			A2
+			P1
 		};
 
-		std::string LixicalClassToString(LexicalClass lexicalClass);
-		std::string TokenToString(LexicalClass lexicalClass, const std::string& word);
-		void GenerateTokens(const char* input_file, const char* output_file);
-		void LexicalException(const std::string& word);
+		class CLexicalUnit {
+		public:
+			CLexicalUnit();
+
+			void GenerateTokens(const char* input_file, const char* output_file);
+		private:
+			int _currentString;
+			std::string _currentWord;
+			LexicalClass _currentClass;
+			std::map<std::string, int> _idTable;
+			StateOfMachine _currentState;
+
+			std::string LexicalClassToString(LexicalClass lexicalClass);
+			std::string TokenToString();
+			void LexicalException();
+			void UpdateCurrentWord(int numberOfChar);
+			void UpdateCurrentState(StateOfMachine state);
+			void WriteMessage(std::ostream& stream);
+		};
 	}
 
-	void TranslitToString(const char* input_file, const char* output_file);
+	void GenerateTokens(const char* input_file, const char* output_file);
 	void TranslitToNumber(const char* input_file, const char* output_file);
+	void TranslitToString(const char* input_file, const char* output_file);
 }
 
 #endif
