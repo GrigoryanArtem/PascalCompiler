@@ -7,7 +7,7 @@ int main(){
 		Compiler::TranslitToString("Resource\\input.txt", "Resource\\SafeTransliterOutput.txt");
 		Compiler::TranslitToNumber("Resource\\input.txt", "Resource\\TransliterOutput.txt");
 
-		Compiler::GenerateTokens("Resource\\TransliterOutput.txt", "Resource\\SafeLexicalOutput.txt");
+		Compiler::GenerateTokens("Resource\\TransliterOutput.txt", "Resource\\SafeLexicalOutput.txt", "Resource\\IdTable.txt", "Resource\\LabelTable.txt");
 	}
 	catch (std::exception& exp){
 		std::cerr << exp.what() << std::endl;

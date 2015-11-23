@@ -73,12 +73,15 @@ namespace Compiler{
 		public:
 			CLexicalUnit();
 
-			void GenerateTokens(const char* input_file, const char* output_file);
+			void GenerateTokens(const char* input_file, const char* output_file, const char* id_table, const char* label_table);
 		private:
 			int _currentString;
+			int _lastIdNumber;
+
 			std::string _currentWord;
 			LexicalClass _currentClass;
 			std::map<std::string, int> _idTable;
+			std::map<std::string, int> _labelTable;
 			StateOfMachine _currentState;
 
 			std::string LexicalClassToString(LexicalClass lexicalClass);
@@ -87,10 +90,13 @@ namespace Compiler{
 			void UpdateCurrentWord(int numberOfChar);
 			void UpdateCurrentState(StateOfMachine state);
 			void WriteMessage(std::ostream& stream);
+			void PutToIdTable(std::string id);
+			void PutToLabelTable(std::string label);
+			void PrintTables(const char* id_table, const char* label_table);
 		};
 	}
 
-	void GenerateTokens(const char* input_file, const char* output_file);
+	void GenerateTokens(const char* input_file, const char* output_file, const char* id_table, const char* label_table);
 	void TranslitToNumber(const char* input_file, const char* output_file);
 	void TranslitToString(const char* input_file, const char* output_file);
 }
